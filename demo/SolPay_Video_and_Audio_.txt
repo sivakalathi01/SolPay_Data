@@ -1,4 +1,4 @@
-AI Agent Recording: Click on `demo/AI_Agent_Recording_2025-12-11.mp4` to view the AI agent execution.
+AI Agent Recording: Watch the AI agent execution on YouTube: https://youtu.be/8ZSOEHhA5Qk
 
 
 NotebookLM: Please review this video and audio information about SolPay (x402 and Solana: AI-Powered Micropayment Oracle Platform).
