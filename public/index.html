@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana AI Data Oracle - x402</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .card h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .endpoint-list {
+            list-style: none;
+        }
+
+        .endpoint-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .endpoint-path {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .endpoint-price {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .transaction-item {
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            font-size: 0.85em;
+        }
+
+        .transaction-hash {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+            opacity: 0.7;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            background: #4CAF50;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            opacity: 0.7;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Solana AI Data Oracle</h1>
+            <p class="subtitle">Powered by x402 Micropayments Protocol</p>
+            <p style="margin-top: 10px;">
+                <span class="status-badge">● Operational</span>
+            </p>
+        </header>
+
+        <div class="grid">
+            <!-- Stats Card -->
+            <div class="card">
+                <h2>📊 Service Statistics</h2>
+                <div id="stats-content" class="loading pulse">Loading...</div>
+            </div>
+
+            <!-- Revenue Card -->
+            <div class="card">
+                <h2>💰 Revenue</h2>
+                <div id="revenue-content" class="loading pulse">Loading...</div>
+            </div>
+
+            <!-- Queries Card -->
+            <div class="card">
+                <h2>🔍 Total Queries</h2>
+                <div id="queries-content" class="loading pulse">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Pricing Card -->
+        <div class="card" style="margin-bottom: 20px;">
+            <h2>💳 API Pricing</h2>
+            <div id="pricing-content" class="loading pulse">Loading...</div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="card">
+            <h2>🔄 Recent Transactions</h2>
+            <div id="transactions-content" class="loading pulse">Loading...</div>
+        </div>
+
+        <!-- Query Distribution -->
+        <div class="card">
+            <h2>📈 Query Distribution</h2>
+            <div id="distribution-content" class="loading pulse">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/v1/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.stats;
+                    
+                    // Update stats
+                    document.getElementById('stats-content').innerHTML = `
+                        <div class="stat-value">${stats.total_queries}</div>
+                        <div class="stat-label">Total API Calls</div>
+                    `;
+                    
+                    // Update revenue
+                    document.getElementById('revenue-content').innerHTML = `
+                        <div class="stat-value">$${stats.total_revenue_usd}</div>
+                        <div class="stat-label">Total USDC Received</div>
+                    `;
+                    
+                    // Update queries
+                    document.getElementById('queries-content').innerHTML = `
+                        <div class="stat-value">${stats.total_queries}</div>
+                        <div class="stat-label">Paid Queries Processed</div>
+                    `;
+                    
+                    // Update transactions
+                    const txHtml = stats.recent_transactions.length > 0
+                        ? stats.recent_transactions.map(tx => `
+                            <div class="transaction-item">
+                                <div><strong>${tx.type}</strong> - $${tx.amount} USDC</div>
+                                <div class="transaction-hash">${tx.signature}</div>
+                                <div style="opacity: 0.7; font-size: 0.9em;">
+                                    ${new Date(tx.timestamp).toLocaleString()}
+                                </div>
+                            </div>
+                        `).join('')
+                        : '<div style="opacity: 0.7;">No transactions yet</div>';
+                    
+                    document.getElementById('transactions-content').innerHTML = txHtml;
+                    
+                    // Update distribution
+                    const distHtml = Object.keys(stats.query_distribution).length > 0
+                        ? Object.entries(stats.query_distribution).map(([type, count]) => `
+                            <div class="transaction-item">
+                                <strong>${type}</strong>: ${count} queries
+                            </div>
+                        `).join('')
+                        : '<div style="opacity: 0.7;">No queries yet</div>';
+                    
+                    document.getElementById('distribution-content').innerHTML = distHtml;
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        async function loadPricing() {
+            try {
+                const response = await fetch('/api/v1/pricing');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const pricingHtml = data.pricing.map(item => `
+                        <div class="endpoint-item">
+                            <div class="endpoint-path">GET /api/v1/${item.endpoint}</div>
+                            <div>${item.description}</div>
+                            <div class="endpoint-price">💰 ${item.price_usdc} USDC per query</div>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('pricing-content').innerHTML = `
+                        <ul class="endpoint-list">${pricingHtml}</ul>
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                            <strong>Payment Method:</strong> ${data.payment_method}<br>
+                            <strong>Protocol:</strong> ${data.protocol}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Failed to load pricing:', error);
+            }
+        }
+
+        // Load data on page load
+        loadStats();
+        loadPricing();
+        
+        // Refresh stats every 5 seconds
+        setInterval(loadStats, 5000);
+    </script>
+</body>
+</html>

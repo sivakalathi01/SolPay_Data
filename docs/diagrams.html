@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>x402 + Solana Architecture & Flow Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        nav {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        nav button {
+            padding: 12px 24px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        nav button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        nav button.active {
+            background: #764ba2;
+        }
+        
+        .diagram-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .diagram-section.active {
+            display: block;
+        }
+        
+        .diagram-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        
+        .diagram-section p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        
+        .mermaid {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .explanation {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            margin-top: 20px;
+        }
+        
+        .explanation h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .explanation ul {
+            margin-left: 20px;
+        }
+        
+        .explanation li {
+            margin: 8px 0;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .controls button {
+            padding: 10px 20px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .controls button:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+        
+        .controls button:active {
+            transform: scale(0.95);
+        }
+        
+        .controls button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .zoom-level {
+            padding: 8px 12px;
+            background: #f0f4ff;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .diagram-wrapper {
+            overflow: auto;
+            max-height: 800px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            position: relative;
+        }
+        
+        .mermaid-zoomable {
+            transition: transform 0.3s ease;
+            transform-origin: top left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 x402 + Solana Oracle</h1>
+            <p class="subtitle">Architecture & Flow Diagrams</p>
+        </header>
+        
+        <nav>
+            <button onclick="showDiagram('architecture')" class="active">Architecture Overview</button>
+            <button onclick="showDiagram('ai-flow')">AI Agent Flow</button>
+            <button onclick="showDiagram('payment-flow')">Payment Verification</button>
+            <button onclick="showDiagram('all')">Show All</button>
+        </nav>
+        
+        <!-- Architecture Diagram -->
+        <div id="architecture" class="diagram-section active">
+            <h2>🏗️ System Architecture</h2>
+            <p>Complete overview of all system components and their interactions</p>
+            
+            <div class="controls">
+                <button onclick="zoomIn('architecture-diagram')">🔍 Zoom In</button>
+                <button onclick="zoomOut('architecture-diagram')">🔍 Zoom Out</button>
+                <button onclick="resetZoom('architecture-diagram')">↺ Reset Zoom</button>
+                <span class="zoom-level" id="architecture-zoom-level">100%</span>
+                <button onclick="speakDiagram('architecture')" id="architecture-tts-btn">🔊 Read Aloud</button>
+                <button onclick="stopSpeaking()" style="background: #dc3545;">⏹️ Stop</button>
+            </div>
+            
+            <div class="diagram-wrapper">
+            <div class="mermaid mermaid-zoomable" id="architecture-diagram">
+graph TB
+    subgraph UserInterface["User Interface"]
+        User[👤 User]
+        AI[🤖 AI Agent GPT-4 Powered]
+    end
+    
+    subgraph ClientComponents["Client Components"]
+        AgentClient[Agent Client agent-client.ts]
+        Wallet[Solana Wallet USDC Balance]
+    end
+    
+    subgraph OracleServerGroup["Oracle Server"]
+        OracleAPI[Oracle API Server oracle-server.ts Port 3402]
+        PaymentGate[x402 Payment Gate requirePayment]
+        Verifier[Payment Verifier verifySolanaPayment]
+    end
+    
+    subgraph DataSources["Data Sources"]
+        CoinGecko[🦎 CoinGecko API Price Data]
+        Jupiter[Jupiter API Solana Prices]
+    end
+    
+    subgraph Blockchain["Blockchain"]
+        Solana[⚡ Solana Devnet]
+        TokenProgram[SPL Token Program]
+        Explorer[Solana Explorer]
+    end
+    
+    subgraph AIServices["AI Services"]
+        OpenAI[🧠 OpenAI GPT-4]
+    end
+    
+    User -->|Natural language query| AI
+    AI -->|Determine endpoint| AgentClient
+    AgentClient -->|HTTP Request| OracleAPI
+    OracleAPI -->|402 Payment Required| PaymentGate
+    PaymentGate -->|Payment details| AgentClient
+    AgentClient -->|Create USDC transfer| Wallet
+    Wallet -->|Sign and send transaction| TokenProgram
+    TokenProgram -->|Confirmation| Solana
+    AgentClient -->|Transaction signature| Verifier
+    Verifier -->|Query transaction| Solana
+    Solana -->|Transaction details| Verifier
+    Verifier -->|Payment verified| OracleAPI
+    OracleAPI -->|Query price data| CoinGecko
+    OracleAPI -->|Query Solana data| Jupiter
+    OracleAPI -->|Query blockchain| Solana
+    OracleAPI -->|200 OK with Data| AgentClient
+    AgentClient -->|Raw data| AI
+    AI -->|Process with GPT-4| OpenAI
+    OpenAI -->|Natural language response| AI
+    AI -->|Final answer| User
+    AgentClient -.->|View transaction| Explorer
+    
+    style User fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style AI fill:#764ba2,stroke:#333,stroke-width:2px,color:#fff
+    style OracleAPI fill:#ff6b6b,stroke:#333,stroke-width:2px,color:#fff
+    style Solana fill:#00d4aa,stroke:#333,stroke-width:2px,color:#fff
+    style OpenAI fill:#10b981,stroke:#333,stroke-width:2px,color:#fff
+            </div>
+            </div>
+            
+            <div class="explanation">
+                <h3>📋 Architecture Components</h3>
+                <ul>
+                    <li><strong>User Interface:</strong> Human asks questions in natural language</li>
+                    <li><strong>AI Agent:</strong> GPT-4 interprets questions and selects appropriate oracle endpoints</li>
+                    <li><strong>Agent Client:</strong> Autonomous payment agent that handles x402 protocol automatically</li>
+                    <li><strong>Oracle Server:</strong> REST API protected by x402 payment gates</li>
+                    <li><strong>Payment Verifier:</strong> Validates on-chain USDC transfers before serving data</li>
+                    <li><strong>Solana Blockchain:</strong> Devnet for fast, free token transfers and verification</li>
+                    <li><strong>External APIs:</strong> CoinGecko for real-time price data, Jupiter for Solana-specific prices</li>
+                    <li><strong>OpenAI GPT-4:</strong> Processes oracle data into human-readable responses</li>
+                </ul>
+                
+                <h3>💡 Key Innovations</h3>
+                <ul>
+                    <li><strong>Fully Autonomous:</strong> AI agent detects 402, pays automatically, receives data - no human intervention</li>
+                    <li><strong>Sub-Second Settlement:</strong> Solana confirms payments in ~400ms</li>
+                    <li><strong>Natural Language:</strong> Users ask questions in plain English, not API calls</li>
+                    <li><strong>On-Chain Verification:</strong> Every payment is verified on Solana blockchain</li>
+                    <li><strong>Transparent Pricing:</strong> All transactions viewable on Solana Explorer</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- AI Agent Flow Diagram -->
+        <div id="ai-flow" class="diagram-section">
+            <h2>🤖 AI Agent Query Flow</h2>
+            <p>Step-by-step sequence showing how AI agent automatically handles payments to get blockchain data</p>
+            
+            <div class="controls">
+                <button onclick="zoomIn('ai-flow-diagram')">🔍 Zoom In</button>
+                <button onclick="zoomOut('ai-flow-diagram')">🔍 Zoom Out</button>
+                <button onclick="resetZoom('ai-flow-diagram')">↺ Reset Zoom</button>
+                <span class="zoom-level" id="ai-flow-zoom-level">100%</span>
+                <button onclick="speakDiagram('ai-flow')" id="ai-flow-tts-btn">🔊 Read Aloud</button>
+                <button onclick="stopSpeaking()" style="background: #dc3545;">⏹️ Stop</button>
+            </div>
+            
+            <div class="diagram-wrapper">
+            <div class="mermaid mermaid-zoomable" id="ai-flow-diagram">
+sequenceDiagram
+    participant U as 👤 User
+    participant AI as 🤖 AI Agent GPT-4
+    participant AC as Agent Client
+    participant OS as Oracle Server
+    participant SOL as ⚡ Solana
+    participant CG as 🦎 CoinGecko
+    
+    Note over U,CG: Example Query: What is the price of Solana?
+    
+    U->>AI: What is the price of Solana?
+    activate AI
+    AI->>AI: Parse natural language
+    AI->>AI: Determine endpoint
+    AI->>AC: query endpoint price SOL
+    activate AC
+    
+    AC->>OS: GET /api/v1/price/SOL
+    activate OS
+    OS->>OS: Check payment required
+    OS-->>AC: 402 Payment Required
+    deactivate OS
+    
+    Note over AC: Agent detects 402 response
+    
+    AC->>AC: Check budget available
+    AC->>AC: Create USDC transfer
+    AC->>SOL: Send transaction
+    activate SOL
+    SOL-->>AC: Transaction signature
+    Note over SOL: Confirmation in 400ms
+    SOL->>SOL: Confirm transaction
+    deactivate SOL
+    
+    AC->>OS: GET with payment signature
+    activate OS
+    
+    OS->>SOL: Get transaction details
+    activate SOL
+    SOL-->>OS: Transaction verified
+    deactivate SOL
+    
+    OS->>OS: Verify payment amount
+    
+    OS->>CG: GET price data
+    activate CG
+    CG-->>OS: Price 134.12 USD
+    deactivate CG
+    
+    OS-->>AC: 200 OK with data
+    deactivate OS
+    deactivate AC
+    
+    AC->>AI: Return oracle data
+    AI->>AI: Process with GPT-4
+    AI-->>U: Solana price is 134.12 USD
+    deactivate AI
+    
+    Note over U,CG: Total time approximately 1 second
+            </div>
+            </div>
+            </div>
+            
+            <div class="explanation">
+                <h3>🔄 Flow Breakdown</h3>
+                <ul>
+                    <li><strong>Step 1-3:</strong> User asks natural language question, AI determines which endpoint to query</li>
+                    <li><strong>Step 4-5:</strong> Agent client requests data, server responds with 402 Payment Required</li>
+                    <li><strong>Step 6-9:</strong> Agent automatically creates USDC payment and sends to Solana blockchain</li>
+                    <li><strong>Step 10-12:</strong> Agent retries request with payment proof, server verifies on-chain</li>
+                    <li><strong>Step 13-14:</strong> Server fetches real-time data from CoinGecko</li>
+                    <li><strong>Step 15-17:</strong> Data returned to agent, processed by GPT-4, formatted for user</li>
+                </ul>
+                
+                <h3>⚡ Key Features</h3>
+                <ul>
+                    <li><strong>Zero Human Intervention:</strong> Agent handles entire payment flow automatically</li>
+                    <li><strong>Budget Control:</strong> Agent checks spending limits before approving payment</li>
+                    <li><strong>Atomic Operation:</strong> Payment verified before data delivered</li>
+                    <li><strong>Natural Language:</strong> User doesn't know about APIs, just asks questions</li>
+                    <li><strong>Transparent Costs:</strong> AI tells user exactly how much data cost</li>
+                </ul>
+                
+                <h3>💰 Cost & Speed</h3>
+                <ul>
+                    <li><strong>Query Cost:</strong> $0.01 USDC (vs $99/month subscription)</li>
+                    <li><strong>Transaction Fee:</strong> ~$0.00001 SOL (negligible)</li>
+                    <li><strong>Total Time:</strong> ~1 second (including payment confirmation)</li>
+                    <li><strong>Payment Finality:</strong> 400ms on Solana Devnet</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Payment Verification Flow -->
+        <div id="payment-flow" class="diagram-section">
+            <h2>💳 Payment Verification Flow (x402 Protocol)</h2>
+            <p>Detailed breakdown of how the oracle server verifies USDC payments on Solana blockchain</p>
+            
+            <div class="mermaid">
+sequenceDiagram
+    participant AC as Agent Client
+    participant OS as Oracle Server
+    participant MW as Middleware
+    participant VF as Verifier
+    participant SOL as Solana RPC
+    participant TP as SPL Token Program
+    participant DS as Data Source
+    
+    Note over AC,DS: Step 1: Initial Request
+    
+    AC->>OS: GET /api/v1/price/SOL
+    activate OS
+    OS->>MW: Check payment requirement
+    activate MW
+    MW->>MW: Endpoint requires payment
+    MW-->>AC: 402 Payment Required
+    deactivate MW
+    deactivate OS
+    
+    Note over AC: Agent creates payment
+    
+    AC->>AC: Build USDC transfer
+    AC->>TP: Transfer USDC
+    activate TP
+    TP->>SOL: Record transaction
+    activate SOL
+    SOL-->>TP: Tx signature 5Dh7L3Y4
+    deactivate SOL
+    TP-->>AC: Success with signature
+    deactivate TP
+    
+    Note over AC,DS: Step 2: Retry with Payment Proof
+    
+    AC->>OS: GET with signature header
+    activate OS
+    OS->>MW: Check payment
+    activate MW
+    MW->>MW: Extract signature from header
+    MW->>VF: Verify payment
+    activate VF
+    
+    Note over VF: Payment Verification Process
+    
+    VF->>SOL: getTransaction
+    activate SOL
+    SOL-->>VF: Transaction details
+    deactivate SOL
+    
+    VF->>VF: Check transaction exists
+    VF->>VF: Check confirmation
+    VF->>VF: Parse token balances
+    
+    loop For each account
+        VF->>VF: Check mint address
+        VF->>VF: Calculate balance change
+        VF->>VF: Verify transfer amount
+    end
+    
+    VF->>VF: Verify recipient
+    VF->>VF: All checks passed
+    VF-->>MW: Payment verified
+    deactivate VF
+    
+    MW->>MW: Mark request as paid
+    MW->>OS: Continue to handler
+    deactivate MW
+    
+    Note over OS: Serve data
+    
+    OS->>DS: Fetch price data
+    activate DS
+    DS-->>OS: SOL price 134.12
+    deactivate DS
+    
+    OS->>OS: Record analytics
+    
+    OS-->>AC: 200 OK with data
+    deactivate OS
+    
+    Note over AC,DS: Payment verified in 650ms total
+            </div>
+            
+            <div class="explanation">
+                <h3>🔐 Verification Steps</h3>
+                <ol>
+                    <li><strong>Signature Extraction:</strong> Server gets transaction signature from HTTP header</li>
+                    <li><strong>Transaction Fetch:</strong> Query Solana RPC for full transaction details</li>
+                    <li><strong>Existence Check:</strong> Verify transaction exists and is confirmed</li>
+                    <li><strong>Token Balance Parsing:</strong> Extract pre/post token balances from metadata</li>
+                    <li><strong>Mint Verification:</strong> Confirm it's the correct USDC token (not a fake)</li>
+                    <li><strong>Amount Verification:</strong> Check transfer amount matches expected price</li>
+                    <li><strong>Recipient Verification:</strong> Ensure server wallet received the payment</li>
+                    <li><strong>Final Approval:</strong> All checks pass → serve data</li>
+                </ol>
+                
+                <h3>🛡️ Security Features</h3>
+                <ul>
+                    <li><strong>On-Chain Verification:</strong> Cannot fake payment - must exist on Solana blockchain</li>
+                    <li><strong>Amount Validation:</strong> Exact amount required, no underpayment accepted</li>
+                    <li><strong>Token Validation:</strong> Must be correct USDC mint, not random tokens</li>
+                    <li><strong>Recipient Check:</strong> Payment must go to server wallet, not elsewhere</li>
+                    <li><strong>Double-Spend Prevention:</strong> Same signature cannot be reused (tracked in server)</li>
+                    <li><strong>Atomic Operation:</strong> Payment verified before data delivered</li>
+                </ul>
+                
+                <h3>⚙️ Technical Details</h3>
+                <ul>
+                    <li><strong>RPC Method:</strong> `getTransaction()` with `maxSupportedTransactionVersion: 0`</li>
+                    <li><strong>Balance Parsing:</strong> Reads token account balances from transaction metadata</li>
+                    <li><strong>Commitment Level:</strong> "confirmed" (400ms finality, sufficient for micropayments)</li>
+                    <li><strong>Error Handling:</strong> Invalid payments return 402 again with error details</li>
+                </ul>
+                
+                <h3>💡 Why This Works</h3>
+                <ul>
+                    <li><strong>Solana's Speed:</strong> 400ms finality makes real-time verification possible</li>
+                    <li><strong>Low Fees:</strong> $0.00001 transaction cost enables micropayments</li>
+                    <li><strong>Transparency:</strong> Every payment verifiable on Solana Explorer</li>
+                    <li><strong>No Trusted Third Party:</strong> Blockchain is source of truth</li>
+                    <li><strong>Permissionless:</strong> Anyone can pay, no accounts or API keys needed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#667eea',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#764ba2',
+                lineColor: '#667eea',
+                secondaryColor: '#f0f4ff',
+                tertiaryColor: '#fff'
+            }
+        });
+        
+        // Zoom levels for each diagram
+        const zoomLevels = {
+            'architecture-diagram': 1.0,
+            'ai-flow-diagram': 1.0
+        };
+        
+        function zoomIn(diagramId) {
+            if (zoomLevels[diagramId] < 3.0) {
+                zoomLevels[diagramId] += 0.2;
+                applyZoom(diagramId);
+            }
+        }
+        
+        function zoomOut(diagramId) {
+            if (zoomLevels[diagramId] > 0.4) {
+                zoomLevels[diagramId] -= 0.2;
+                applyZoom(diagramId);
+            }
+        }
+        
+        function resetZoom(diagramId) {
+            zoomLevels[diagramId] = 1.0;
+            applyZoom(diagramId);
+        }
+        
+        function applyZoom(diagramId) {
+            const diagram = document.getElementById(diagramId);
+            const level = zoomLevels[diagramId];
+            diagram.style.transform = `scale(${level})`;
+            
+            // Update zoom level display
+            const levelDisplay = document.getElementById(diagramId.replace('-diagram', '-zoom-level'));
+            if (levelDisplay) {
+                levelDisplay.textContent = `${Math.round(level * 100)}%`;
+            }
+        }
+        
+        // Text-to-Speech functionality
+        let currentSpeech = null;
+        
+        const diagramTexts = {
+            'architecture': `System Architecture Overview. 
+                The system consists of six main components: 
+                User Interface layer with User and AI Agent powered by GPT-4. 
+                Client Components including Agent Client and Solana Wallet with USDC Balance. 
+                Oracle Server containing the Oracle API Server running on port 3402, x402 Payment Gate using requirePayment middleware, and Payment Verifier using verifySolanaPayment function. 
+                Blockchain layer with Solana Devnet RPC and SPL Token Program for USDC transfers. 
+                Data Sources including CoinGecko API for price data and Jupiter API for Solana prices. 
+                Cross-Chain Support for Ethereum Sepolia RPC and Etherscan API. 
+                
+                The flow works as follows: 
+                User asks a question to the AI Agent. 
+                AI Agent determines which data is needed and sends request to Agent Client. 
+                Agent Client queries the Oracle Server. 
+                Oracle Server requires payment through x402 Payment Gate. 
+                Agent Client sends USDC payment via Solana blockchain. 
+                Payment Verifier confirms the transaction on-chain. 
+                Once payment is verified, Oracle Server fetches data from CoinGecko or Jupiter. 
+                Data is returned through the chain back to the user. 
+                
+                For cross-chain queries, the system can also query Ethereum Sepolia network through Etherscan API.`,
+            
+            'ai-flow': `AI Agent Flow for Natural Language Query. 
+                Example query: What is the price of Solana? 
+                
+                Step 1: User asks AI Agent: What is the price of Solana? 
+                Step 2: AI Agent parses the natural language question. 
+                Step 3: AI Agent determines the endpoint needed: slash API slash v1 slash price slash SOL. 
+                Step 4: AI Agent sends query to Agent Client. 
+                Step 5: Agent Client sends GET request to Oracle Server for price endpoint. 
+                Step 6: Oracle Server checks payment requirement and responds with 402 Payment Required. 
+                Step 7: Agent Client detects the 402 response. 
+                Step 8: Agent checks budget - ten dollars available, query costs 1 cent. 
+                Step 9: Agent creates USDC transfer for 0.01 USDC. 
+                Step 10: Agent sends transaction to Solana blockchain via SPL Token Transfer. 
+                Step 11: Solana returns transaction signature. Transaction confirms in approximately 400 milliseconds. 
+                Step 12: Agent Client retries request with payment signature in header. 
+                Step 13: Oracle Server receives request with payment proof. 
+                Step 14: Oracle Server queries Solana blockchain to get transaction details. 
+                Step 15: Solana returns verified transaction with pre and post token balances. 
+                Step 16: Oracle Server verifies payment: correct amount 0.01 USDC, correct recipient, transaction confirmed. 
+                Step 17: Oracle Server queries CoinGecko API for current price. 
+                Step 18: CoinGecko returns price: 134.12 USD. 
+                Step 19: Oracle Server responds with 200 OK and price data. 
+                Step 20: Agent Client returns oracle data to AI Agent. 
+                Step 21: AI Agent processes response with GPT-4. 
+                Step 22: AI Agent tells user: The current price of Solana is 134.12 USD. 
+                
+                Total time: approximately 1 second. Total cost: 1 cent USDC. 
+                
+                Key features: Zero human intervention - agent handles entire payment flow automatically. 
+                Budget Control - agent checks spending limits before approving payment. 
+                Atomic Operation - payment verified before data delivered. 
+                Natural Language - user doesn't know about APIs, just asks questions. 
+                Transparent Costs - AI tells user exactly how much data cost.`
+        };
+        
+        function speakDiagram(diagramId) {
+            // Stop any ongoing speech
+            stopSpeaking();
+            
+            // Check if browser supports speech synthesis
+            if (!('speechSynthesis' in window)) {
+                alert('Sorry, your browser does not support text-to-speech.');
+                return;
+            }
+            
+            const text = diagramTexts[diagramId];
+            if (!text) {
+                alert('No text available for this diagram.');
+                return;
+            }
+            
+            currentSpeech = new SpeechSynthesisUtterance(text);
+            currentSpeech.rate = 0.9; // Slightly slower for clarity
+            currentSpeech.pitch = 1.0;
+            currentSpeech.volume = 1.0;
+            
+            // Update button state
+            const btn = document.getElementById(diagramId + '-tts-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '🔊 Speaking...';
+            }
+            
+            // Re-enable button when done
+            currentSpeech.onend = function() {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '🔊 Read Aloud';
+                }
+                currentSpeech = null;
+            };
+            
+            window.speechSynthesis.speak(currentSpeech);
+        }
+        
+        function stopSpeaking() {
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+            
+            // Re-enable all TTS buttons
+            document.querySelectorAll('[id$="-tts-btn"]').forEach(btn => {
+                btn.disabled = false;
+                btn.textContent = '🔊 Read Aloud';
+            });
+            
+            currentSpeech = null;
+        }
+        
+        function showDiagram(section) {
+            // Stop any ongoing speech when switching diagrams
+            stopSpeaking();
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Hide all sections
+            document.querySelectorAll('.diagram-section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            
+            // Show selected section(s)
+            if (section === 'all') {
+                document.querySelectorAll('.diagram-section').forEach(sec => {
+                    sec.classList.add('active');
+                });
+            } else {
+                document.getElementById(section).classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
