@@ -19,7 +19,7 @@ An autonomous AI-powered data oracle that provides real-time blockchain analytic
 3. **[Quick Start Guide](docs/QUICK-START.md)** - Get running in 5 minutes
 4. **[Real-World Use Cases](docs/USE-CASES.md)** - 10 practical applications
 
-**🎥 AI Agent Recording:** Watch the full demo execution in [`demo/AI_Agent_Recording_2025-12-11.mp4`](demo/AI_Agent_Recording_2025-12-11.mp4)
+**🎥 AI Agent Recording:** Click on [YouTube link](https://youtu.be/8ZSOEHhA5Qk) to view the AI agent execution.
 
 **🎙️ NotebookLM Overview:** Listen to an AI-generated podcast discussion about this project:
 - **📺 Video Overview:** [Watch on NotebookLM](https://notebooklm.google.com/notebook/533216ff-bda6-4574-9f21-f17b725d28fc?artifactId=c2373054-5764-467e-8f54-927bb70afa55)
