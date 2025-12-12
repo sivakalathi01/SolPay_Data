@@ -1,4 +1,5 @@
 AI Agent Recording: Watch the AI agent execution on YouTube: https://youtu.be/8ZSOEHhA5Qk
+(Note: YouTube link will be set to public on December 13, 2025 at 12:00 AM)
 
 
 NotebookLM: Please review this video and audio information about SolPay (x402 and Solana: AI-Powered Micropayment Oracle Platform).
