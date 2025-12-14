@@ -219,14 +219,17 @@
             <div class="diagram-wrapper">
             <div class="mermaid mermaid-zoomable" id="architecture-diagram">
 graph TB
-    subgraph UserInterface["User Interface"]
+    subgraph UserInterface["User Interface - Two Access Methods"]
         User[👤 User]
         AI[🤖 AI Agent GPT-4 Powered]
+        Frontend[🌐 Next.js Frontend dApp]
     end
     
     subgraph ClientComponents["Client Components"]
         AgentClient[Agent Client agent-client.ts]
-        Wallet[Solana Wallet USDC Balance]
+        WebClient[Web Client useX402Query hook]
+        AgentWallet[Solana Wallet Automated]
+        PhantomWallet[Phantom Wallet User-Controlled]
     end
     
     subgraph OracleServerGroup["Oracle Server"]
@@ -238,10 +241,12 @@ graph TB
     subgraph DataSources["Data Sources"]
         CoinGecko[🦎 CoinGecko API Price Data]
         Jupiter[Jupiter API Solana Prices]
+        DexScreener[📊 DexScreener API Real-time Prices]
     end
     
     subgraph Blockchain["Blockchain"]
         Solana[⚡ Solana Devnet]
+        Ethereum[⚡ Ethereum Sepolia]
         TokenProgram[SPL Token Program]
         Explorer[Solana Explorer]
     end
@@ -250,54 +255,99 @@ graph TB
         OpenAI[🧠 OpenAI GPT-4]
     end
     
+    %% AI Agent Path (Automated)
     User -->|Natural language query| AI
     AI -->|Determine endpoint| AgentClient
     AgentClient -->|HTTP Request| OracleAPI
     OracleAPI -->|402 Payment Required| PaymentGate
     PaymentGate -->|Payment details| AgentClient
-    AgentClient -->|Create USDC transfer| Wallet
-    Wallet -->|Sign and send transaction| TokenProgram
+    AgentClient -->|Create USDC transfer| AgentWallet
+    AgentWallet -->|Sign and send transaction| TokenProgram
     TokenProgram -->|Confirmation| Solana
     AgentClient -->|Transaction signature| Verifier
     Verifier -->|Query transaction| Solana
     Solana -->|Transaction details| Verifier
     Verifier -->|Payment verified| OracleAPI
-    OracleAPI -->|Query price data| CoinGecko
-    OracleAPI -->|Query Solana data| Jupiter
-    OracleAPI -->|Query blockchain| Solana
     OracleAPI -->|200 OK with Data| AgentClient
     AgentClient -->|Raw data| AI
     AI -->|Process with GPT-4| OpenAI
     OpenAI -->|Natural language response| AI
     AI -->|Final answer| User
+    
+    %% Frontend dApp Path (Manual)
+    User -->|Select query type| Frontend
+    Frontend -->|HTTP Request| OracleAPI
+    PaymentGate -->|Payment details| WebClient
+    WebClient -->|Show payment modal| Frontend
+    Frontend -->|User approves| PhantomWallet
+    PhantomWallet -->|Sign USDC transfer| TokenProgram
+    WebClient -->|Transaction signature| Verifier
+    Verifier -->|Payment verified| OracleAPI
+    OracleAPI -->|200 OK with Data| Frontend
+    Frontend -->|Display data| User
+    
+    %% Data Sources
+    OracleAPI -->|Query price data| DexScreener
+    OracleAPI -->|Query Solana data| Jupiter
+    OracleAPI -->|Fallback prices| CoinGecko
+    OracleAPI -->|Query Solana blockchain| Solana
+    OracleAPI -->|Query Ethereum blockchain| Ethereum
+    
     AgentClient -.->|View transaction| Explorer
+    Frontend -.->|View transaction| Explorer
     
     style User fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
     style AI fill:#764ba2,stroke:#333,stroke-width:2px,color:#fff
+    style Frontend fill:#10b981,stroke:#333,stroke-width:2px,color:#fff
     style OracleAPI fill:#ff6b6b,stroke:#333,stroke-width:2px,color:#fff
     style Solana fill:#00d4aa,stroke:#333,stroke-width:2px,color:#fff
+    style Ethereum fill:#627eea,stroke:#333,stroke-width:2px,color:#fff
     style OpenAI fill:#10b981,stroke:#333,stroke-width:2px,color:#fff
+    style PhantomWallet fill:#ab9ff2,stroke:#333,stroke-width:2px,color:#fff
             </div>
             </div>
             
             <div class="explanation">
                 <h3>📋 Architecture Components</h3>
                 <ul>
-                    <li><strong>User Interface:</strong> Human asks questions in natural language</li>
-                    <li><strong>AI Agent:</strong> GPT-4 interprets questions and selects appropriate oracle endpoints</li>
-                    <li><strong>Agent Client:</strong> Autonomous payment agent that handles x402 protocol automatically</li>
-                    <li><strong>Oracle Server:</strong> REST API protected by x402 payment gates</li>
+                    <li><strong>User Interface (Two Access Methods):</strong>
+                        <ul>
+                            <li><strong>AI Agent:</strong> GPT-4 interprets questions in natural language and handles payments automatically</li>
+                            <li><strong>Frontend dApp:</strong> Next.js web interface with Phantom wallet for manual queries</li>
+                        </ul>
+                    </li>
+                    <li><strong>Client Components:</strong>
+                        <ul>
+                            <li><strong>Agent Client:</strong> Autonomous payment agent (agent-client.ts) that handles x402 protocol automatically</li>
+                            <li><strong>Web Client:</strong> Frontend payment hook (useX402Query) that prompts users for payment approval</li>
+                        </ul>
+                    </li>
+                    <li><strong>Wallet Integration:</strong>
+                        <ul>
+                            <li><strong>Automated Wallet:</strong> Server-controlled wallet for AI agent payments</li>
+                            <li><strong>Phantom Wallet:</strong> User-controlled wallet for manual dApp payments</li>
+                        </ul>
+                    </li>
+                    <li><strong>Oracle Server:</strong> REST API protected by x402 payment gates (port 3402)</li>
                     <li><strong>Payment Verifier:</strong> Validates on-chain USDC transfers before serving data</li>
-                    <li><strong>Solana Blockchain:</strong> Devnet for fast, free token transfers and verification</li>
-                    <li><strong>External APIs:</strong> CoinGecko for real-time price data, Jupiter for Solana-specific prices</li>
-                    <li><strong>OpenAI GPT-4:</strong> Processes oracle data into human-readable responses</li>
+                    <li><strong>Blockchain Networks:</strong>
+                        <ul>
+                            <li><strong>Solana Devnet:</strong> Fast, free token transfers and verification (~400ms)</li>
+                            <li><strong>Ethereum Sepolia:</strong> Cross-chain balance queries and testnet support</li>
+                        </ul>
+                    </li>
+                    <li><strong>External APIs:</strong> DexScreener (primary), Jupiter, CoinGecko for real-time price data</li>
+                    <li><strong>OpenAI GPT-4:</strong> Processes oracle data into human-readable responses (AI agent only)</li>
                 </ul>
                 
                 <h3>💡 Key Innovations</h3>
                 <ul>
+                    <li><strong>Dual Access Modes:</strong> Automated AI agent OR manual web dApp - user's choice</li>
                     <li><strong>Fully Autonomous:</strong> AI agent detects 402, pays automatically, receives data - no human intervention</li>
+                    <li><strong>User-Controlled Payments:</strong> Frontend dApp requires explicit user approval via Phantom wallet</li>
                     <li><strong>Sub-Second Settlement:</strong> Solana confirms payments in ~400ms</li>
-                    <li><strong>Natural Language:</strong> Users ask questions in plain English, not API calls</li>
+                    <li><strong>Cross-Chain Support:</strong> Query data from both Solana and Ethereum testnets</li>
+                    <li><strong>Natural Language:</strong> AI agent accepts questions in plain English, not API calls</li>
                     <li><strong>On-Chain Verification:</strong> Every payment is verified on Solana blockchain</li>
                     <li><strong>Transparent Pricing:</strong> All transactions viewable on Solana Explorer</li>
                 </ul>

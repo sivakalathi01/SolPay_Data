@@ -1,8 +1,8 @@
-AI Agent Recording: Watch the AI agent execution on YouTube: https://youtu.be/8ZSOEHhA5Qk
-(Note: YouTube link will be set to public on December 13, 2025 at 12:00 AM)
 
+SolPay Data Oracle - AI Agent Demo - Watch on YouTube : https://youtu.be/8ZSOEHhA5Qk - AI agent autonomous execution
+SolPay Data Oracle - dApp Demo - Watch on YouTube : https://youtu.be/bWGgDz4ofUo - Next.js frontend with Phantom wallet
 
-NotebookLM: Please review this video and audio information about SolPay (x402 and Solana: AI-Powered Micropayment Oracle Platform).
+NotebookLM: Please review this video and audio information about SolPay Data Oracle (x402 and Solana: AI-Powered Micropayment Oracle Platform).
 
 Note: A Google account is required to review the NotebookLM video and audio overview.
 

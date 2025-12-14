@@ -6,7 +6,7 @@
 > 
 > **🧪 100% FREE TESTING** - Both Solana Devnet and Ethereum Sepolia testnet!
 
-An autonomous AI-powered data oracle that provides real-time blockchain analytics (Solana + Ethereum) with pay-per-query pricing using the x402 protocol. AI agents and applications can query on-chain data, token prices, wallet analytics, and cross-chain balances by automatically paying with testnet USDC on Solana Devnet or Ethereum Sepolia - no API keys, no subscriptions, no real money required!
+An autonomous AI-powered data oracle that provides real-time blockchain analytics (Solana + Ethereum) with pay-per-query pricing using the x402 protocol. AI agents and applications can query on-chain data, token prices, wallet analytics, and cross-chain balances by automatically paying with testnet (custom) USDC on Solana Devnet or Ethereum Sepolia - no API keys, no subscriptions, no real money required!
 
 ---
 
@@ -19,8 +19,9 @@ An autonomous AI-powered data oracle that provides real-time blockchain analytic
 3. **[Quick Start Guide](docs/QUICK-START.md)** - Get running in 5 minutes
 4. **[Real-World Use Cases](docs/USE-CASES.md)** - 10 practical applications
 
-**🎥 AI Agent Recording:** Click on [YouTube link](https://youtu.be/8ZSOEHhA5Qk) to view the AI agent execution.  
-*Note: YouTube link will be set to public on December 13, 2025 at 12:00 AM*
+**🎥 Demo Videos:**
+- **SolPay Data AI Agent Demo:** [Watch on YouTube](https://youtu.be/8ZSOEHhA5Qk) - AI agent autonomous execution
+- **SolPay Data dApp Demo:** [Watch on YouTube](https://youtu.be/bWGgDz4ofUo) - Next.js frontend with Phantom wallet
 
 **🎙️ NotebookLM Overview:** Listen to an AI-generated podcast discussion about this project:
 - **📺 Video Overview:** [Watch on NotebookLM](https://notebooklm.google.com/notebook/533216ff-bda6-4574-9f21-f17b725d28fc?artifactId=c2373054-5764-467e-8f54-927bb70afa55)
@@ -65,11 +66,12 @@ Traditional blockchain data providers require:
 ### 🏗️ What We Built
 
 1. **Solana Data Oracle Service** - Real-time on-chain data APIs protected by x402
-2. **AI Agent Client** - Autonomous agent that queries data and pays automatically
-3. **Payment Gateway** - Verifies SPL token transfers AND Ethereum EIP-3009
-4. **🌉 Cross-Chain Endpoint** - Query Solana + Ethereum balances with one payment
-5. **Analytics Dashboard** - Real-time visualization of queries and payments
-6. **Complete SDK** - Easy integration for developers
+2. **AI Agent Client** - Autonomous agent that queries data and pays automatically  
+3. **Next.js Frontend dApp** - Web UI with Phantom wallet integration for manual queries
+4. **Payment Gateway** - Verifies SPL token transfers AND Ethereum EIP-3009
+5. **🌉 Cross-Chain Endpoint** - Query Solana + Ethereum balances with one payment
+6. **Analytics Dashboard** - Real-time visualization of queries and payments
+7. **Complete SDK** - Easy integration for developers
 
 ---
 
@@ -291,10 +293,10 @@ The server will start on `http://localhost:3402` with:
 **Data Endpoints** (require payment):
 - `GET /api/v1/price/:token` - Token price ($0.01)
 - `GET /api/v1/wallet/:address` - Wallet balance ($0.005)
+- `GET /api/v1/cross-chain/balance/:address` - **🌉 Cross-chain balance** ($0.02)
 - `GET /api/v1/holders/:mint` - Token holder count ($0.05)
 - `GET /api/v1/transactions/:address` - Transaction history ($0.10)
 - `GET /api/v1/analytics/:mint` - Complete token analytics ($0.20)
-- `GET /api/v1/cross-chain/balance/:address` - **🌉 Cross-chain balance** ($0.005)
 
 **Free Endpoints**:
 - `GET /api/v1/pricing` - View all pricing
@@ -344,6 +346,35 @@ The AI agent will autonomously:
 5. **Automatically pay for each query using x402**
 
 **Tip:** Use `QUERY_DELAY_MS` environment variable to add delays between queries for easier observation.
+
+### 🌐 Running the Frontend (Web UI)
+
+**NEW: Interactive Web Interface** - Connect Phantom wallet and query the oracle through a user-friendly interface!
+
+```bash
+# In a new terminal (with backend still running)
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000` in your browser.
+
+**Frontend Features:**
+- 🔌 Phantom wallet connection (Solana Devnet + Ethereum Sepolia)
+- 💰 x402 payment flow with user approval
+- 🎯 All 6 oracle endpoints accessible
+- 🌉 Cross-chain balance display
+- 📊 Real-time spending dashboard
+- 📈 Query history tracking
+
+**Requirements:**
+- Phantom wallet browser extension
+- Testnet mode enabled in Phantom (Settings → Developer Settings → Testnet Mode)
+- Solana Devnet SOL + custom USDC tokens
+- Backend server running on port 3402
+
+📖 **See [frontend/README.md](./frontend/README.md) for detailed frontend documentation!**
 
 ## 💡 How It Works
 
@@ -416,7 +447,7 @@ Traditional API:
 
 ## 📊 Technical Architecture
 
-**Interactive Visualizations:** Open `docs/diagrams.html` in your browser to view Architecture Overview, AI Agent Flow, and Payment Verification diagrams with zoom and text-to-speech features.
+**Interactive Visualizations:** Open docs/diagrams.html locally in your browser (navigate to the file on your computer and double-click, or use `file://` path) to view Architecture Overview, AI Agent Flow, and Payment Verification diagrams with zoom and text-to-speech features.
 
 ### Components
 

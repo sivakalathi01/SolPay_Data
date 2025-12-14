@@ -13,6 +13,17 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
+// Enable CORS for frontend
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, x-payment-method, x-payment-signature, x-payment-from');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Configuration - Multi-chain support
 // Solana (devnet by default)
 const SOLANA_USDC = process.env.USDC_MINT || 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr'; // Devnet USDC
@@ -66,6 +77,7 @@ const analytics = {
 const PRICING = {
   'token-price': 10000, // $0.01
   'wallet-balance': 5000, // $0.005
+  'cross-chain-balance': 20000, // $0.02
   'token-holders': 50000, // $0.05
   'nft-metadata': 20000, // $0.02
   'transaction-history': 100000, // $0.10
@@ -352,25 +364,32 @@ function requirePayment(queryType: keyof typeof PRICING) {
  * 🌉 CROSS-CHAIN: Aggregated multi-chain wallet balance
  * This endpoint showcases x402 as a universal payment standard!
  * Query both Solana AND Ethereum balances with a single payment.
+ * Usage: /api/v1/cross-chain/balance?solana=XXX&ethereum=0xYYY
  */
-app.get('/api/v1/cross-chain/balance/:address', requirePayment('wallet-balance'), async (req, res) => {
+app.get('/api/v1/cross-chain/balance/:address?', requirePayment('cross-chain-balance'), async (req, res) => {
   const { address } = req.params;
+  const { solana: solanaAddr, ethereum: ethAddr } = req.query;
 
   try {
     const results: any = {
-      address,
       ...getTimestampData(),
       chains: {},
     };
 
-    // Determine if address is Ethereum (starts with 0x) or Solana
-    const isEthAddress = address.startsWith('0x');
-    const isSolanaAddress = !isEthAddress;
+    // Support both query params (solana=XXX&ethereum=0xYYY) OR path param
+    const solanaAddress = solanaAddr as string || (!address?.startsWith('0x') ? address : null);
+    const ethereumAddress = ethAddr as string || (address?.startsWith('0x') ? address : null);
 
-    // Fetch Solana balance (only if Solana address provided)
-    if (isSolanaAddress) {
+    if (solanaAddress || ethereumAddress) {
+      results.address = solanaAddress && ethereumAddress 
+        ? { solana: solanaAddress, ethereum: ethereumAddress }
+        : (solanaAddress || ethereumAddress);
+    }
+
+    // Fetch Solana balance if Solana address provided
+    if (solanaAddress) {
       try {
-        const pubkey = new PublicKey(address);
+        const pubkey = new PublicKey(solanaAddress);
         const balance = await solanaConnection.getBalance(pubkey);
         const tokenAccounts = await solanaConnection.getParsedTokenAccountsByOwner(pubkey, {
           programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
@@ -391,20 +410,18 @@ app.get('/api/v1/cross-chain/balance/:address', requirePayment('wallet-balance')
       } catch (e) {
         results.chains.solana = { error: 'Invalid Solana address or fetch failed' };
       }
-    } else {
-      results.chains.solana = { error: 'Ethereum address provided - cannot query Solana chain' };
     }
 
-    // Fetch Ethereum balance (only if Ethereum address provided)
-    if (isEthAddress) {
+    // Fetch Ethereum balance if Ethereum address provided
+    if (ethereumAddress) {
       try {
-        const balance = await ethereumProvider.getBalance(address);
+        const balance = await ethereumProvider.getBalance(ethereumAddress);
         const usdcContract = new ethers.Contract(
           ETHEREUM_USDC,
           ['function balanceOf(address) view returns (uint256)'],
           ethereumProvider
         );
-        const usdcBalance = await usdcContract.balanceOf(address);
+        const usdcBalance = await usdcContract.balanceOf(ethereumAddress);
 
         results.chains.ethereum = {
           native_balance: Number(ethers.formatEther(balance)),
@@ -425,8 +442,6 @@ app.get('/api/v1/cross-chain/balance/:address', requirePayment('wallet-balance')
           results.chains.ethereum = { error: `Ethereum fetch failed: ${e.message}` };
         }
       }
-    } else {
-      results.chains.ethereum = { error: 'Solana address provided - cannot query Ethereum chain' };
     }
 
     res.json({
@@ -457,24 +472,43 @@ app.get('/api/v1/price/:token', requirePayment('token-price'), async (req, res) 
     let priceData: any = null;
     let source = '';
 
-    // Try Jupiter API first (v6)
+    // Try DexScreener API first (free, reliable, no rate limits)
     try {
-      console.log(`   Trying Jupiter API...`);
-      const jupResponse = await axios.get(`https://api.jup.ag/price/v2?ids=${token}`, {
+      console.log(`   Trying DexScreener API...`);
+      const dexResponse = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${token}`, {
         timeout: 5000,
         headers: { 'Accept': 'application/json' }
       });
       
-      if (jupResponse.data?.data?.[token]) {
-        priceData = jupResponse.data.data[token];
-        source = 'Jupiter';
-        console.log(`   ✅ Jupiter: $${priceData.price}`);
+      if (dexResponse.data?.pairs?.[0]?.priceUsd) {
+        priceData = { price: parseFloat(dexResponse.data.pairs[0].priceUsd) };
+        source = 'DexScreener';
+        console.log(`   ✅ DexScreener: $${priceData.price}`);
       }
-    } catch (jupError: any) {
-      console.log(`   ⚠️  Jupiter failed: ${jupError.message}`);
+    } catch (dexError: any) {
+      console.log(`   ⚠️  DexScreener failed: ${dexError.message}`);
     }
 
-    // Fallback to CoinGecko if Jupiter fails
+    // Try Jupiter API if DexScreener fails
+    if (!priceData) {
+      try {
+        console.log(`   Trying Jupiter API...`);
+        const jupResponse = await axios.get(`https://api.jup.ag/price/v2?ids=${token}`, {
+          timeout: 5000,
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        if (jupResponse.data?.data?.[token]) {
+          priceData = jupResponse.data.data[token];
+          source = 'Jupiter';
+          console.log(`   ✅ Jupiter: $${priceData.price}`);
+        }
+      } catch (jupError: any) {
+        console.log(`   ⚠️  Jupiter failed: ${jupError.message}`);
+      }
+    }
+
+    // Fallback to CoinGecko
     if (!priceData && tokenMap[token]) {
       try {
         console.log(`   Trying CoinGecko API...`);
@@ -493,13 +527,13 @@ app.get('/api/v1/price/:token', requirePayment('token-price'), async (req, res) 
       }
     }
 
-    // If both APIs fail, use mock data
+    // If all APIs fail, return error instead of mock data
     if (!priceData) {
-      console.log(`   📝 Using mock data`);
-      priceData = { 
-        price: token.includes('So1111111') ? 180.50 : 1.00 
-      };
-      source = 'Mock (APIs unavailable)';
+      return res.status(503).json({
+        success: false,
+        error: 'Price data temporarily unavailable. All price APIs failed.',
+        message: 'Try again in a moment or check if the token address is correct.',
+      });
     }
 
     res.json({
@@ -708,6 +742,41 @@ app.get('/api/v1/analytics/:mint', requirePayment('token-analytics'), async (req
 // =============================================================================
 
 /**
+ * Get Ethereum balance (FREE - no payment required, for wallet display)
+ */
+app.get('/api/v1/eth-balance/:address', async (req, res) => {
+  try {
+    const address = req.params.address;
+    
+    // Validate Ethereum address
+    if (!ethers.isAddress(address)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid Ethereum address',
+      });
+    }
+
+    // Get ETH balance on Sepolia
+    const balance = await ethereumProvider.getBalance(address);
+    const balanceEth = ethers.formatEther(balance);
+
+    res.json({
+      success: true,
+      address,
+      network: 'Sepolia',
+      balance_eth: balanceEth,
+      balance_wei: balance.toString(),
+      ...getTimestampData(),
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+/**
  * Get pricing information
  */
 app.get('/api/v1/pricing', (req, res) => {
@@ -769,6 +838,7 @@ app.listen(PORT, () => {
   console.log('📡 Available Data Endpoints:');
   console.log(`  • GET  /api/v1/price/:token          - Token price ($0.01)`);
   console.log(`  • GET  /api/v1/wallet/:address       - Wallet balance ($0.005)`);
+  console.log(`  • GET  /api/v1/cross-chain/balance   - Cross-chain balance ($0.02)`);
   console.log(`  • GET  /api/v1/holders/:mint         - Token holders ($0.05)`);
   console.log(`  • GET  /api/v1/transactions/:address - TX history ($0.10)`);
   console.log(`  • GET  /api/v1/analytics/:mint       - Full analytics ($0.20)`);
